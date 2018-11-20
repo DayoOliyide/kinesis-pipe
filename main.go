@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -19,6 +20,7 @@ var (
 	sourceStream    string
 	awsEndPoint     string
 	numberOfRecords PositiveNumber
+	startFrom       timeValue
 )
 
 //////////////////////////////////////////////////////////
@@ -56,6 +58,30 @@ func (n *PositiveNumber) Type() string {
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
+type timeValue struct {
+	time.Time
+}
+
+func (t *timeValue) String() string {
+	return fmt.Sprintf("%s", t.Format("20060102150405"))
+}
+
+func (t *timeValue) Set(tstring string) error {
+	parsedT, err := time.Parse(time.RFC3339, tstring)
+	if err != nil {
+		return err
+	}
+
+	t.Time = parsedT
+	return nil
+}
+
+func (t *timeValue) Type() string {
+	return "Formated date"
+}
+
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
 func createConfig() aws.Config {
 	if awsEndPoint != "" {
 		return aws.Config{
@@ -123,4 +149,5 @@ func init() {
 	pflag.StringVarP(&sourceStream, "source", "s", "", "Source Stream")
 	pflag.StringVarP(&awsEndPoint, "end-point", "e", "", "AWS End Point")
 	pflag.VarP(&numberOfRecords, "number", "n", "Number of records to read")
+	pflag.VarP(&startFrom, "start-from", "d", "Start Time to read records from")
 }
